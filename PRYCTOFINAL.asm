@@ -18,8 +18,8 @@
    CCP4		  RES	     1	    ;VARIABLE SERVO 4
    CCP31	  RES	     1	    ;SERVO3 MANUAL
    CCP41	  RES	     1	    ;SERVO4 MANUAL
-   SERVO3	  RES	     1	    ;Variables que me servir·n para darle un 
-   SERVO4	  RES	     1	    ;lÌmite al avance del servo
+   SERVO3	  RES	     1	    ;Variables que me servir√°n para darle un 
+   SERVO4	  RES	     1	    ;l√≠mite al avance del servo
    CONTADOR	  RES	     1      ;Variable control
    CONTADOR1	  RES	     1
 ;*******************************************************************************
@@ -52,7 +52,7 @@ POP:
     SWAPF   W_TEMP, 0
     RETFIE
      
-;**************************Funcion de la interrupciÛn***************************
+;**************************Funcion de la interrupci√≥n***************************
      BANDERA_TMR0:
     MOVLW   .254
     MOVWF   TMR0  
@@ -118,7 +118,7 @@ START
     CALL    CONFIG_TX_RX	    ; 10417hz
     CALL    CONFIG_ADC		    ; canal 0, fosc/8, adc on, justificado a la izquierda, Vref interno (0-5V)
     CALL    CONFIG_PWM1
-    CALL    CONFIG_PWM2		    ;ConfiguraciÛn para los primeros 2 servos
+    CALL    CONFIG_PWM2		    ;Configuraci√≥n para los primeros 2 servos
     CALL    CONFIG_TMR0
     CALL    CONFIG_INTERRUPT
     BANKSEL PORTA
@@ -130,14 +130,14 @@ START
     
     
     LOOP:
-    BCF	    ADCON0, CHS3	    ; CANAL 0 PARA LA CONVERSI”N
+    BCF	    ADCON0, CHS3	    ; CANAL 0 PARA LA CONVERSI√ìN
     BCF	    ADCON0, CHS2
     BCF	    ADCON0, CHS1
     BCF	    ADCON0, CHS0
     CALL    DELAY_50MS
-    BSF	    ADCON0, GO		    ; EMPIEZA LA CONVERSI”N
+    BSF	    ADCON0, GO		    ; EMPIEZA LA CONVERSI√ìN
 CHECK_AD:
-    BTFSC   ADCON0, GO		    ; revisa que terminÛ la conversiÛn
+    BTFSC   ADCON0, GO		    ; revisa que termin√≥ la conversi√≥n
     GOTO    CHECK_AD
     BCF	    PIR1, ADIF		    ; borramos la bandera del adc
     MOVFW   ADRESH
@@ -149,7 +149,7 @@ CHECK_AD:
     BCF	    ADCON0, CHS1
     BSF	    ADCON0, CHS0
     CALL    DELAY_50MS
-    BSF     ADCON0, GO		    ; EMPIECE LA CONVERSI”N
+    BSF     ADCON0, GO		    ; EMPIECE LA CONVERSI√ìN
 CHECKADC1:
     BTFSC   ADCON0, GO		    ; LOOP HASTA QUE TERMINE DE CONVERTIR
     GOTO    CHECKADC1
@@ -163,11 +163,11 @@ CHECKADC1:
     BSF	    ADCON0, CHS1
     BCF	    ADCON0, CHS0
     CALL    DELAY_50MS
-    BSF     ADCON0, GO		    ; EMPIECE LA CONVERSI”N
+    BSF     ADCON0, GO		    ; EMPIECE LA CONVERSI√ìN
 CHECKADC2:
     BTFSC   ADCON0, GO		    ; LOOP HASTA QUE TERMINE DE CONVERTIR
     GOTO    CHECKADC2
-    BCF	    PIR1, ADIF		    ; BORRAMOS BANDERA DE INTERRUPCI”N
+    BCF	    PIR1, ADIF		    ; BORRAMOS BANDERA DE INTERRUPCI√ìN
     MOVFW   ADRESH
     MOVWF   CCP3		    ; MOVEMOS EL VALOR HACIA VARIABLE	CCP1
     
@@ -177,7 +177,7 @@ CHECKADC2:
     BSF	    ADCON0, CHS1
     BSF	    ADCON0, CHS0
     CALL    DELAY_50MS
-    BSF     ADCON0, GO		    ; EMPIECE LA CONVERSI”N
+    BSF     ADCON0, GO		    ; EMPIECE LA CONVERSI√ìN
 CHECKADC3:
     BTFSC   ADCON0, GO		    ; LOOP HASTA QUE TERMINE DE CONVERTIR
     GOTO    CHECKADC3
@@ -206,19 +206,19 @@ CHECKADC3:
 CHECK_TXIF: 
     BTFSS   PIR1, TXIF
     GOTO    CHECK_TXIF
-    MOVFW   CCP1		    ; ENVÕA CCP1 POR EL TX
+    MOVFW   CCP1		    ; ENV√çA CCP1 POR EL TX
     MOVWF   TXREG
     CALL    DELAY_500US
-    MOVFW   CCP2		    ; ENVÕA CCP2 POR EL TX
+    MOVFW   CCP2		    ; ENV√çA CCP2 POR EL TX
     MOVWF   TXREG
     CALL    DELAY_500US
-    MOVFW   CCP3		    ; ENVÕA CCP3 POR EL TX
+    MOVFW   CCP3		    ; ENV√çA CCP3 POR EL TX
     MOVWF   TXREG
     CALL    DELAY_500US
-    MOVFW   CCP4		    ; ENVÕA CCP4 POR EL TX
+    MOVFW   CCP4		    ; ENV√çA CCP4 POR EL TX
     MOVWF   TXREG
     CALL    DELAY_500US
-    MOVLW   .13		    ; ENVÕA 13 POR EL TX. AsÌ los servos sabr·n 
+    MOVLW   .13		    ; ENV√çA 13 POR EL TX. As√≠ los servos sabr√°n 
     MOVWF   TXREG		    ;que valor tomar sin traslaparse
    
     
@@ -235,7 +235,7 @@ CHECK_TXIF:
  ;--------------------------------------------------------
     CONFIG_TX_RX
     BANKSEL TXSTA
-    BCF	    TXSTA, SYNC		    ; ASINCR”NO
+    BCF	    TXSTA, SYNC		    ; ASINCR√ìNO
     BSF	    TXSTA, BRGH		    ; LOW SPEED
     BANKSEL BAUDCTL
     BSF	    BAUDCTL, BRG16	    ; 8 BITS BAURD RATE GENERATOR
@@ -246,7 +246,7 @@ CHECK_TXIF:
     BANKSEL RCSTA
     BSF	    RCSTA, SPEN		    ; HABILITAR SERIAL PORT
     BCF	    RCSTA, RX9		    ; SOLO MANEJAREMOS 8BITS DE DATOS
-    BSF	    RCSTA, CREN		    ; HABILITAMOS LA RECEPCI”N 
+    BSF	    RCSTA, CREN		    ; HABILITAMOS LA RECEPCI√ìN 
     BANKSEL TXSTA
     BSF	    TXSTA, TXEN		    ; HABILITO LA TRANSMISION
     
@@ -264,10 +264,10 @@ CONFIG_IO
     CLRF    TRISB
     BANKSEL ANSEL
     CLRF    ANSEL
-    BSF	    ANSEL, 0	; ANS0 COMO ENTRADA ANAL”GICA
-    BSF	    ANSEL, 1	; ANS1 COMO ENTRADA ANAL”GICA
-    BSF	    ANSEL, 2	; ANS0 COMO ENTRADA ANAL”GICA
-    BSF	    ANSEL, 3	; ANS1 COMO ENTRADA ANAL”GICA
+    BSF	    ANSEL, 0	; ANS0 COMO ENTRADA ANAL√ìGICA
+    BSF	    ANSEL, 1	; ANS1 COMO ENTRADA ANAL√ìGICA
+    BSF	    ANSEL, 2	; ANS0 COMO ENTRADA ANAL√ìGICA
+    BSF	    ANSEL, 3	; ANS1 COMO ENTRADA ANAL√ìGICA
     CLRF    ANSELH
     BANKSEL PORTA
     CLRF    PORTA
@@ -281,11 +281,11 @@ CONFIG_IO
     BSF ADCON0, ADCS0		; FOSC/8 RELOJ TAD
     	
     BANKSEL TRISA
-    BCF ADCON1, ADFM		; JUSTIFICACI”N A LA IZQUIERDA
+    BCF ADCON1, ADFM		; JUSTIFICACI√ìN A LA IZQUIERDA
     BCF ADCON1, VCFG1		; VSS COMO REFERENCIA VREF-
     BCF ADCON1, VCFG0		; VDD COMO REFERENCIA VREF+
     BANKSEL PORTA
-    BSF ADCON0, ADON		; ENCIENDO EL M”DULO ADC
+    BSF ADCON0, ADON		; ENCIENDO EL M√ìDULO ADC
     
     RETURN
 ;-----------------------------------------------
@@ -308,7 +308,7 @@ DELAY_500US
     BANKSEL TRISC
     BSF	    TRISC, RC1		; ESTABLEZCO RC1 / CCP2 COMO ENTRADA
     MOVLW   .255
-    MOVWF   PR2			; COLOCO EL VALOR DEL PERIODO DE MI SE—AL 2.5mS
+    MOVWF   PR2			; COLOCO EL VALOR DEL PERIODO DE MI SE√ëAL 2.5mS
     
     BANKSEL PORTA
     BSF	    CCP2CON, CCP2M3
@@ -342,7 +342,7 @@ DELAY_500US
     BANKSEL TRISC
     BSF	    TRISC, RC2		; ESTABLEZCO RC2 / CCP1 COMO ENTRADA
     MOVLW   .255
-    MOVWF   PR2			; COLOCO EL VALOR DEL PERIODO DE MI SE—AL 20mS
+    MOVWF   PR2			; COLOCO EL VALOR DEL PERIODO DE MI SE√ëAL 20mS
     
     BANKSEL PORTA
     BCF	    CCP1CON, P1M0
@@ -403,3 +403,4 @@ DELAY_500US
     RETURN
     
     END
+    jjjjjjj
