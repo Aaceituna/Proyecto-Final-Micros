@@ -1,12 +1,18 @@
-;*************************************************************
-; antonio ALTUNA Adrian Ayala
-; UVG
-; Brazo
-;*************************************************************
+;*******************************************************************************
+;                                                                              *
+;    Filename:      Brazo					               *
+;    Fecha:         23/11/2018						       *
+;    File Version:  v.1                                                        *
+;    Autor:	    Antonio Altuna y Jose Ayala                                *
+;    Curso:	    Programación de Microcontroladores                         *    
+;    Descripcion:   Proyecto 2 - Brazo 					       *
+;*******************************************************************************
+;
+;
+;*******************************************************************************
 #include "p16f887.inc"
 
-    ;probando 
-    ; version pwm 
+
 ; CONFIG1
 ; __config 0xFCD4
  __CONFIG _CONFIG1, _FOSC_INTRC_NOCLKOUT & _WDTE_OFF & _PWRTE_OFF & _MCLRE_OFF & _CP_OFF & _CPD_OFF & _BOREN_OFF & _IESO_OFF & _FCMEN_OFF & _LVP_OFF
@@ -15,7 +21,17 @@
  __CONFIG _CONFIG2, _BOR4V_BOR40V & _WRT_OFF
  
  
-GPR_VAR	    UDATA
+GPR_VAR	    UDATA_shr
+ADDRESS	    RES 1
+CONT1	    RES 1
+CONT2	    RES 1
+CONT3	    RES 1
+CONT4	    RES 1
+CONTROL	    RES	1
+LIMITE	    RES 1
+MEM1	    RES 1
+MEM2	    RES 1
+MEM3	    RES 1
 DELAY1	    RES	1
 W_TEMP	    RES	1
 STATUS_TEMP RES	1
@@ -23,20 +39,8 @@ STATUS_TEMP RES	1
 RES_VECT    CODE    0x0000		; processor reset vector
     GOTO    START			; go to beginning of program
 
-ISR_VECT    CODE    0x0004
-PUSH:
-    MOVWF   W_TEMP
-    SWAPF   STATUS, W
-    MOVWF   STATUS_TEMP
-ISR:
-    ; acá se colocaría el código en la interrupcion 
-POP:
-    SWAPF   STATUS_TEMP, W
-    MOVWF   STATUS
-    SWAPF   W_TEMP, F
-    SWAPF   W_TEMP, W
-    RETFIE
-; TODO ADD INTERRUPTS HERE IF USED
+INT_VECT   CODE    0X004   ;Interrupcion
+    GOTO    INTERRUPCION 
 ;-------------------------------PRINCIPAL---------------------------------------
 MAIN_PROG CODE                      ; let linker place main program
 
@@ -45,13 +49,63 @@ START
     CALL    CONFIG_IO
     CALL    CONFIG_ADC
     CALL    CONFIG_PWM
-    CALL    CONFIG_PWM2
+    CALL    CONFIG_PW
+    CALL    CONFIG_GENERAL
     BANKSEL PORTA
     
 LOOP
 CALL MOTORASO
+MOVF    RCREG, W
+MOVWF   CONTROL
+BTFSS   CONTROL, 0
+    GOTO    $+6
+    MOVLW   d'20'
+    MOVWF   CONT2
+    MOVLW	d'0'
+    MOVWF	ADDRESS
+    CALL    ESCRIBIR
+BTFSS   CONTROL, 1
+    GOTO	$+8
+    MOVLW	d'20'
+    MOVWF	CONT2
+    MOVLW	d'20'
+    MOVWF	ADDRESS
+    MOVLW	d'20'
+    MOVWF	CONT4
+    CALL	ESCRIBIR
+BTFSS   CONTROL, 2
+    GOTO	$+8
+    MOVLW	d'20'
+    MOVWF	CONT2
+    MOVLW	d'40'
+    MOVWF	ADDRESS
+    MOVLW	d'40'
+    MOVWF	CONT4
+    CALL	ESCRIBIR
+BTFSS   CONTROL, 3
+    GOTO	$+6
+    MOVLW	d'0'    
+    MOVWF	ADDRESS
+    MOVF	MEM1, 0
+    MOVWF   CONT3
+    CALL    REPRODUCIR
+BTFSS   CONTROL, 4
+    GOTO	$+6
+    MOVLW	d'20'
+    MOVWF	ADDRESS
+    SUBWF	MEM2, 0
+    MOVWF   CONT3
+    CALL    REPRODUCIR
+BTFSS   CONTROL, 5
+    GOTO	$+6
+    MOVLW	d'40'
+    MOVWF	ADDRESS
+    SUBWF	MEM3, 0
+    MOVWF   CONT3
+    CALL    REPRODUCIR
     
-    GOTO    LOOP                          
+    GOTO    LOOP
+                        
 ;------------------------------SUBRUTINAS---------------------------------------
 CHANNEL1:
     BANKSEL PORTA
@@ -101,7 +155,71 @@ CONFIG_INTERRUPT
     BCF	    INTCON, T0IE
     BCF	    INTCON, T0IF
     RETURN
+    
+CONFIG_GENERAL    
+    BCF	    STATUS, 5
+    BCF	    STATUS, 6	;Banco 0
+    CLRF    PORTA
+    CLRF    PORTB
+    CLRF    PORTC
+    
+    BSF	    STATUS, 5
+    BSF	    STATUS, 6   ;Banco 3
+    CLRF    ANSEL	;Borra entradas analógicas
+    CLRF    ANSELH
+    
+    BANKSEL TXSTA
+    BCF	    TXSTA, SYNC		    
+    BSF	    TXSTA, BRGH		    
+    BANKSEL BAUDCTL
+    BSF	    BAUDCTL, BRG16	    
+    BANKSEL SPBRG
+    MOVLW   .25	    
+    MOVWF   SPBRG		    
+    CLRF    SPBRGH
+    BANKSEL RCSTA
+    BSF	    RCSTA, SPEN		    
+    BCF	    RCSTA, RX9		    
+    BSF	    RCSTA, CREN		    
+    BANKSEL TXSTA
+    BSF	    TXSTA, TXEN		    
+    
+    BCF	    STATUS, 5
+    BCF	    STATUS, 6	;Banco 0
 
+    
+    BSF	    STATUS, 5
+    MOVLW   b'11110011'
+    MOVWF   TRISA
+    MOVLW   b'00000000'
+    MOVWF   TRISB
+    MOVLW   b'10000000'
+    MOVWF   TRISC
+    
+    BSF	OSCCON, 6
+    BCF	OSCCON, 5
+    BCF	OSCCON, 4   ;Oscilador 1 MHz
+	
+    BSF	PIE1, 0	    ;Se activa interrupcion de TIMR1
+    
+    BCF	STATUS, 5	;Banco 0
+    MOVLW   b'11011100'
+    MOVWF   TMR1L
+    MOVLW   b'00001011'
+    MOVWF   TMR1H
+    BCF	    T1CON, 6    
+    BCF	    T1CON, 5
+    BCF	    T1CON, 4    ;Prescaler 1:2 en TIMER1
+    BCF	    T1CON, 3
+    BCF	    T1CON, 1    ;Reloj interno
+
+    CLRF    ADDRESS
+    CLRF    CONTROL
+    CLRF    CONT4
+    CLRF    LIMITE
+    CLRF    MEM1
+    CLRF    MEM2
+    CLRF    MEM3
 CONFIG_ADC
     BANKSEL PORTA
     BCF ADCON0, ADCS1
