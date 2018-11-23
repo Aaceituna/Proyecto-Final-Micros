@@ -8,20 +8,31 @@ import sys
 raiz=Tk()
 
 recibido = 0
+stop = 0
 
 ser = serial.Serial(port='/dev/cu.SLAB_USBtoUART', baudrate=9600, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,bytesize=serial.EIGHTBITS, timeout=0)
 
 def function():
+	global	stop
+	stop = int(0).to_bytes(1, byteorder = "big")
 	ser.flushInput()
 	ser.flushOutput()
-	time.sleep(.2)
-	ser.write(recibido)
+	time.sleep(.8)
+	ser.write(stop)
+	#if recibido1 != 0:
+		#recibido = 0
+	#else:
+		#recibido = v_guardado
 	raiz.after(50, function)
 
 def actualizar():
 	global recibido
 	angulo1 = valor.get()
 	recibido = round((int(angulo1))).to_bytes(1, byteorder = "big")
+	ser.flushInput()
+	ser.flushOutput()
+	time.sleep(.2)
+	ser.write(recibido)
 
 
 raiz.resizable(0,0)
