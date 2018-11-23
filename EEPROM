@@ -1,4 +1,4 @@
-;*******************************************************************************
+;***************************
 ;                                                                              *
 ;    Filename:      Brazo					               *
 ;    Fecha:         23/11/2018						       *
@@ -6,10 +6,10 @@
 ;    Autor:	    Antonio Altuna y Jose Ayala                                *
 ;    Curso:	    Programación de Microcontroladores                         *    
 ;    Descripcion:   Proyecto 2 - Brazo 					       *
-;*******************************************************************************
+;***************************
 ;
 ;
-;*******************************************************************************
+;***************************
     
 #include "p16f887.inc"
 
@@ -21,13 +21,12 @@
  __CONFIG _CONFIG2, _BOR4V_BOR40V & _WRT_OFF
  
 GPR_VAR	    UDATA_shr
+CONTROL	    RES	1
 ADDRESS	    RES 1
 CONT1	    RES 1
 CONT2	    RES 1
 CONT3	    RES 1
 CONT4	    RES 1
-CONTROL	    RES	1
-LIMITE	    RES 1
 
 RES_VECT   CODE    0x0000		
     GOTO    START
@@ -68,13 +67,13 @@ SETUP:
     MOVLW   b'10000000'
     MOVWF   TRISC
     
-    BSF	    OSCCON, 6
-    BCF	    OSCCON, 5
-    BSF	    OSCCON, 4   ;Oscilador 2 MHz
+    BSF	OSCCON, 6
+    BCF	OSCCON, 5
+    BSF	OSCCON, 4   ;Oscilador 2 MHz
 	
-    BSF	    PIE1, 0	    ;Se activa interrupcion de TIMR1
+    BSF	PIE1, 0	    ;Se activa interrupcion de TIMR1
     
-    BCF	    STATUS, 5	;Banco 0
+    BCF	STATUS, 5	;Banco 0
     MOVLW   b'11011100'
     MOVWF   TMR1L
     MOVLW   b'00001011'
@@ -88,20 +87,6 @@ SETUP:
     CLRF    ADDRESS
     CLRF    CONTROL
     CLRF    CONT4
-
-TABLA
-    ADDWF	PCL, 1		    
-	RETLW   b'00000001'	;0
-	RETLW   b'00000010'	;1
-	RETLW   b'00000100'	;2
-	RETLW   b'00001000'	;3
-	RETLW   b'00010000'	;4
-	RETLW   b'00100000'	;5
-	RETLW   b'01000000'	;6
-	RETLW   b'10000000'	;7
-	RETLW   b'10000001'	;8
-	RETLW   b'10000010'	;9
-    
     
 LOOP
     BTFSS   PORTA, 0
@@ -157,11 +142,11 @@ ESCRIBIR
     BSF	    T1CON, 0    ;Activa TIMER1
     BSF	    INTCON, 7
     BSF	    INTCON, 6
-    BTFSS   LIMITE, 0
+    BTFSS   CONTROL, 0
     GOTO    $+7
     BCF	    INTCON, 7
     BCF	    INTCON, 6
-    BCF	    LIMITE, 0
+    BCF	    CONTROL, 0
     CLRF    ADDRESS
     CLRF    CONT4
     RETURN
@@ -201,7 +186,7 @@ INTERRUPCION
     INCF    ADDRESS, 1
     DECF    CONT2, 1
     BTFSC   STATUS, Z
-	BSF	LIMITE, 0
+	BSF	CONTROL, 0
     MOVLW   b'11011100'
     MOVWF   TMR1L
     MOVLW   b'00001011'
