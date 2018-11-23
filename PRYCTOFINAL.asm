@@ -1,7 +1,7 @@
 ;*************************************************************
-; ANTONIO ALTUNA. ADRIAN AYALA 
+; antonio ALTUNA Adrian Ayala
 ; UVG
-; PROYECTO PWM
+; Brazo
 ;*************************************************************
 #include "p16f887.inc"
 
@@ -152,9 +152,9 @@ CONFIG_ADC
 
 CONFIG_OSCILATOR
     BANKSEL TRISA
-    BCF OSCCON, IRCF2
-    BSF OSCCON, IRCF1
-    BSF OSCCON, IRCF0		; FRECUECNIA DE 500kHz
+    BSF OSCCON, IRCF2
+    BCF OSCCON, IRCF1
+    BCF OSCCON, IRCF0		; FRECUECNIA DE 1MHz
     RETURN
     
 CONFIG_PWM
@@ -223,3 +223,4 @@ CONFIG_PWM2
     BCF	    TRISC, RC2		    ; RC1 / CCP2 SALIDA PWM
     RETURN	
 END
+
