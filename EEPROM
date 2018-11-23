@@ -1,4 +1,4 @@
-;***************************
+;*******************************************************************************
 ;                                                                              *
 ;    Filename:      Brazo					               *
 ;    Fecha:         23/11/2018						       *
@@ -6,10 +6,10 @@
 ;    Autor:	    Antonio Altuna y Jose Ayala                                *
 ;    Curso:	    Programación de Microcontroladores                         *    
 ;    Descripcion:   Proyecto 2 - Brazo 					       *
-;***************************
+;*******************************************************************************
 ;
 ;
-;***************************
+;*******************************************************************************
     
 #include "p16f887.inc"
 
@@ -31,9 +31,7 @@ LIMITE	    RES 1
 MEM1	    RES 1
 MEM2	    RES 1
 MEM3	    RES 1
-VAR1	    RES 1
-VAR2	    RES 1
-
+	    
 RES_VECT   CODE    0x0000		
     GOTO    START
 INT_VECT   CODE    0X004   ;Interrupcion
@@ -52,8 +50,8 @@ SETUP:
     
     BSF	    STATUS, 5
     BSF	    STATUS, 6   ;Banco 3
-    BSF    ANSEL	;Borra entradas analógicas
-    BSF    ANSELH
+    CLRF    ANSEL	;Borra entradas analógicas
+    CLRF    ANSELH
     
     BANKSEL TXSTA
     BCF	    TXSTA, SYNC		    
@@ -69,13 +67,11 @@ SETUP:
     BCF	    RCSTA, RX9		    
     BSF	    RCSTA, CREN		    
     BANKSEL TXSTA
-    BSF	    TXSTA, TXEN	
+    BSF	    TXSTA, TXEN		    
     
     BCF	    STATUS, 5
     BCF	    STATUS, 6	;Banco 0
-    
-    BSF	    ADCON0, 0
-    BSF	    ADCON0, 1
+
     
     BSF	    STATUS, 5
     MOVLW   b'11110011'
@@ -109,95 +105,8 @@ SETUP:
     CLRF    MEM1
     CLRF    MEM2
     CLRF    MEM3
-
-CONFIG_ADC:
-    BANKSEL PORTA
-    CLRF    VAL1
-    CLRF    VAL2
-    BCF ADCON0, ADCS1
-    BSF ADCON0, ADCS0		; FOSC/8 RELOJ TAD
     
-    BCF ADCON0, CHS3		; CANAL 0 PARA LA CONVERSION
-    BCF ADCON0, CHS2
-    BCF ADCON0, CHS1
-    BCF ADCON0, CHS0	
-    BANKSEL TRISA
-    BCF ADCON1, ADFM		; JUSTIFICACIÓN A LA IZQUIERDA
-    BCF ADCON1, VCFG1		; VSS COMO REFERENCIA VREF-
-    BCF ADCON1, VCFG0		; VDD COMO REFERENCIA VREF+
-    BANKSEL PORTA
-    BSF ADCON0, ADON		; ENCIENDO EL MÓDULO ADC
-    RETURN
-    
-CONFIG_PWM:
-    BANKSEL TRISC
-    BSF	    TRISC, RC1		    ; ESTABLEZCO RC1 / CCP2 COMO ENTRADA
-    MOVLW   .155
-    MOVWF   PR2			    ; COLOCO EL VALOR DEL PERIODO DE MI SEÑAL 20mS
-    
-    BANKSEL PORTA
-    BSF	    CCP2CON, CCP2M3
-    BSF	    CCP2CON, CCP2M2
-    BSF	    CCP2CON, CCP2M1
-    BSF	    CCP2CON, CCP2M0		    ; MODO PWM
-    
-
-    
-    MOVLW   B'00011011'
-    MOVWF   CCPR2L		    ; MSB   DEL DUTY CICLE
-    BSF	    CCP2CON, DC2B0
-    BSF	    CCP2CON, DC2B1	    ; LSB del duty cicle
-    
-    BCF	    PIR1, TMR2IF
-    
-    BSF	    T2CON, T2CKPS1
-    BSF	    T2CON, T2CKPS0	    ; PRESCALER 1:16
-    
-    BSF	    T2CON, TMR2ON	    ; HABILITAMOS EL TMR2
-    BTFSS   PIR1, TMR2IF
-    GOTO    $-1
-    BCF	    PIR1, TMR2IF
-    
-    BANKSEL TRISC
-    BCF	    TRISC, RC1		    ; RC1 / CCP2 SALIDA PWM
-    RETURN
-    
-CONFIG_PWM2:
-    BANKSEL TRISC
-    BSF	    TRISC, RC2		    ; ESTABLEZCO RC1 / CCP2 COMO ENTRADA
-    MOVLW   .155
-    MOVWF   PR2			    ; COLOCO EL VALOR DEL PERIODO DE MI SEÑAL 20mS
-    
-    BANKSEL PORTA
-    BSF	    CCP1CON, CCP1M3
-    BSF	    CCP1CON, CCP1M2
-    BCF	    CCP1CON, CCP1M1
-    BCF	    CCP1CON, CCP1M0		    ; MODO PWM
-    
-
-    
-    MOVLW   B'00011011'
-    MOVWF   CCPR1L		    ; MSB   DEL DUTY CICLE
-    BSF	    CCP1CON, DC1B0
-    BSF	    CCP1CON, DC1B1	    ; LSB del duty cicle
-    
-    BCF	    PIR1, TMR2IF
-    
-    BSF	    T2CON, T2CKPS1
-    BSF	    T2CON, T2CKPS0	    ; PRESCALER 1:16
-    
-    BSF	    T2CON, TMR2ON	    ; HABILITAMOS EL TMR2
-    BTFSS   PIR1, TMR2IF
-    GOTO    $-1
-    BCF	    PIR1, TMR2IF
-    
-    BANKSEL TRISC
-    BCF	    TRISC, RC2		    ; RC1 / CCP2 SALIDA PWM
-    RETURN	
-    
-    
-LOOP:
-    CALL MOTORES_2
+LOOP
     MOVF    RCREG, W
     MOVWF   CONTROL
     BTFSS   CONTROL, 0
@@ -236,46 +145,20 @@ LOOP:
 	GOTO	$+6
 	MOVLW	d'20'
 	MOVWF	ADDRESS
-	MOVF	MEM2, 0
+	SUBWF	MEM2, 0
 	MOVWF   CONT3
 	CALL    REPRODUCIR
     BTFSS   CONTROL, 5
 	GOTO	$+6
 	MOVLW	d'40'
 	MOVWF	ADDRESS
-	MOVF	MEM3, 0
+	SUBWF	MEM3, 0
 	MOVWF   CONT3
 	CALL    REPRODUCIR
     GOTO    LOOP
 
-MOTORES_2:    
-    BCF	    INTCON, GIE		; NO HAY INTERRUPCIONES ACTIVAS
-    BCF	    INTCON, T0IE
-    CALL    CHANNEL1
-    CALL    DELAY_500US
-    BSF	    ADCON0, GO		; EMPIECE LA CONVERSIÓN
-CHECKADC:
-    BTFSC   ADCON0, GO		; LOOP HASTA QUE TERMINE DE CONVERTIR
-    GOTO    CHECKADC
-    MOVF    ADRESH, W
-    BCF	    PIR1, ADIF		; BORRAMOS BANDERA DE
-    MOVWF   VAL1
-    MOVWF   CCPR2L		; MOVEMOS EL VALOR HACIA EL PERÍODO DEL PWM ROTAMOS PARA LOGRAR SOLO USAR EL TIEMPO EN ALTO DEL PWM
-  
-    CALL    CHANNEL2
-    
-    CALL    DELAY_500US
-    BSF	    ADCON0, GO		; EMPIECE LA CONVERSIÓN
-CHECKADC2:
-    BTFSC   ADCON0, GO		; LOOP HASTA QUE TERMINE DE CONVERTIR
-    GOTO    CHECKADC2
-    MOVF    ADRESH, W
-    BCF	    PIR1, ADIF		; BORRAMOS BANDERA DE
-    MOVWF   VAL2
-    MOVWF   CCPR1L		; MOVEMOS EL VALOR HACIA EL PERÍODO DEL PWM ROTAMOS PARA LOGRAR SOLO USAR EL TIEMPO EN ALTO DEL PWM
-    RETURN
-    
-ESCRIBIR:
+
+ESCRIBIR
     MOVF    RCREG, W
     MOVWF   CONTROL
     BTFSC   CONTROL, 6
@@ -293,7 +176,7 @@ ESCRIBIR:
     CLRF    CONT4
     RETURN
    
-INTERRUPCION:
+INTERRUPCION
     BCF	    INTCON, 7
     BCF	    INTCON, 6
     INCF    CONT4, 1
@@ -322,8 +205,6 @@ INTERRUPCION:
     ;RETFIE
     MOVF    CONT4, 0
     MOVWF   PORTB
-    MOVF    ADDRESS, 0
-    MOVWF   PORTB
     INCF    ADDRESS, 1
     DECF    CONT2, 1
     BTFSC   STATUS, Z
@@ -341,7 +222,7 @@ INTERRUPCION:
     BSF	    INTCON, 7
     RETFIE
  
-REPRODUCIR:
+REPRODUCIR
     MOVF    RCREG, W
     MOVWF   CONTROL
     BTFSS   CONTROL, 6
@@ -366,7 +247,7 @@ REPRODUCIR:
     INCF    ADDRESS, 1
     CALL    DELAY1
     GOTO    REPRODUCIR
-    
+  
  DE_REGRESO
     MOVLW   d'21'
     SUBWF   ADDRESS, 0
@@ -386,7 +267,7 @@ REPRODUCIR:
     MOVWF   MEM3
     RETURN
     
-DELAY1:
+DELAY1
     MOVLW .100
 	MOVWF CONT2
 CONFIG1:	
@@ -398,5 +279,8 @@ RESTA:
 	DECFSZ CONT2, F
 	GOTO CONFIG1
     RETURN
+
+END
+    
 
 END
