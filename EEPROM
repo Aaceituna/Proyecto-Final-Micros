@@ -1,1 +1,202 @@
+;*******************************************************************************
+;                                                                              *
+;    Filename:      Brazo					               *
+;    Fecha:         23/11/2018						       *
+;    File Version:  v.1                                                        *
+;    Autor:	    Antonio Altuna y Jose Ayala                                *
+;    Curso:	    Programación de Microcontroladores                         *    
+;    Descripcion:   Proyecto 2 - Brazo 					       *
+;*******************************************************************************
+;
+;
+;*******************************************************************************
+    
+#include "p16f887.inc"
 
+; CONFIG1
+; __config 0xE0F4
+ __CONFIG _CONFIG1, _FOSC_INTRC_NOCLKOUT & _WDTE_OFF & _PWRTE_OFF & _MCLRE_ON & _CP_OFF & _CPD_OFF & _BOREN_OFF & _IESO_OFF & _FCMEN_OFF & _LVP_OFF
+; CONFIG2
+; __config 0xFFFF
+ __CONFIG _CONFIG2, _BOR4V_BOR40V & _WRT_OFF
+ 
+GPR_VAR	    UDATA_shr
+CONTROL	    RES	1
+ADDRESS	    RES 1
+CONT1	    RES 1
+CONT2	    RES 1
+CONT3	    RES 1
+CONT4	    RES 1
+
+RES_VECT   CODE    0x0000		
+    GOTO    START
+INT_VECT   CODE    0X004   ;Interrupcion
+    GOTO    INTERRUPCION 
+
+PROG CODE
+START
+
+SETUP:
+    
+    BCF	    STATUS, 5
+    BCF	    STATUS, 6	;Banco 0
+    CLRF    PORTA
+    CLRF    PORTB
+    CLRF    PORTC
+    
+    BSF	    STATUS, 5
+    BSF	    STATUS, 6   ;Banco 3
+    CLRF    ANSEL	;Borra entradas analógicas
+    CLRF    ANSELH
+    
+    BCF	    STATUS, 5
+    BCF	    STATUS, 6	;Banco 0
+    
+    BCF	    ADCON0, 7
+    BSF	    ADCON0, 6
+    BCF	    ADCON0, 5
+    BCF	    ADCON0, 4
+    BCF	    ADCON0, 3
+    BSF	    ADCON0, 2
+    
+    BSF	    STATUS, 5
+    MOVLW   b'00110011'
+    MOVWF   TRISA
+    MOVLW   b'00000000'
+    MOVWF   TRISB
+    MOVLW   b'10000000'
+    MOVWF   TRISC
+    
+    BSF	OSCCON, 6
+    BCF	OSCCON, 5
+    BSF	OSCCON, 4   ;Oscilador 2 MHz
+	
+    BSF	PIE1, 0	    ;Se activa interrupcion de TIMR1
+    
+    BCF	STATUS, 5	;Banco 0
+    MOVLW   b'11011100'
+    MOVWF   TMR1L
+    MOVLW   b'00001011'
+    MOVWF   TMR1H
+    BCF	    T1CON, 6    
+    BCF	    T1CON, 5
+    BSF	    T1CON, 4    ;Prescaler 1:8 en TIMER1
+    BCF	    T1CON, 3
+    BCF	    T1CON, 1    ;Reloj interno
+
+    CLRF    ADDRESS
+    CLRF    CONTROL
+    CLRF    CONT4
+    
+LOOP
+    BTFSS   PORTA, 0
+	GOTO    $+6
+	MOVLW   d'20'
+	MOVWF   CONT2
+	MOVLW	d'30'
+	MOVWF	ADDRESS
+	MOVLW	d'32'
+	MOVWF	CONT4
+	CALL    ESCRIBIR
+    BTFSS   PORTA, 1
+	GOTO    LOOP
+    CLRF    ADDRESS
+    MOVLW   d'20'
+    MOVWF   CONT3
+    CALL    REPRODUCIR
+    GOTO    LOOP
+
+
+ESCRIBIR
+    BSF	    T1CON, 0    ;Activa TIMER1
+    BSF	    INTCON, 7
+    BSF	    INTCON, 6
+    BTFSS   CONTROL, 0
+    GOTO    $+7
+    BCF	    INTCON, 7
+    BCF	    INTCON, 6
+    BCF	    CONTROL, 0
+    CLRF    ADDRESS
+    CLRF    CONT4
+    RETURN
+    GOTO    ESCRIBIR
+   
+INTERRUPCION
+    BCF	    INTCON, 7
+    BCF	    INTCON, 6
+    INCF    CONT4, 1
+    MOVF    CONT4, 0
+    MOVWF   CONT1
+    BANKSEL EEADR
+    MOVF    ADDRESS, 0
+    ;MOVLW   .5
+    MOVWF   EEADR
+    MOVF    CONT1, 0
+    ;MOVLW   .10
+    MOVWF   EEDAT
+    BANKSEL EECON1
+    BCF	    EECON1, 7
+    BSF	    EECON1, 2
+    MOVLW   h'55'
+    MOVWF   EECON2
+    MOVLW   h'AA'
+    MOVWF   EECON2
+    BSF	    EECON1, 1
+    BTFSC   EECON1, 1
+    GOTO    $-1
+    BCF	    EECON1, 2
+    BANKSEL PORTB
+    ;BSF	    CONTROL, 0
+    ;RETFIE
+    MOVF    CONT4, 0
+    MOVWF   PORTB
+    MOVF    ADDRESS, 0
+    MOVWF   PORTB
+    INCF    ADDRESS, 1
+    DECF    CONT2, 1
+    BTFSC   STATUS, Z
+	BSF	CONTROL, 0
+    MOVLW   b'11011100'
+    MOVWF   TMR1L
+    MOVLW   b'00001011'
+    MOVWF   TMR1H
+    BCF	    PIR1, 0		;Se reinica TIMER1
+    BSF	    INTCON, 6
+    BSF	    INTCON, 7
+    RETFIE
+ 
+REPRODUCIR
+    BANKSEL EEADR
+    MOVF    ADDRESS, 0
+    MOVWF   EEADR
+    BANKSEL EECON1
+    BCF	    EECON1, 7
+    BSF	    EECON1, 0
+    BANKSEL EEDAT
+    MOVF    EEDAT, 0
+    BANKSEL PORTB
+    MOVWF   PORTB
+    DECF    CONT3, 1
+    BTFSS   STATUS, Z
+    GOTO    $+3
+    CLRF    ADDRESS
+    RETURN
+    INCF    ADDRESS, 1
+    CALL    DELAY1
+    GOTO    REPRODUCIR
+    
+DELAY1
+    MOVLW .100
+	MOVWF CONT2
+CONFIG1:	
+	MOVLW .100
+    MOVWF CONT1
+RESTA:    
+    DECFSZ CONT1, F
+    GOTO RESTA
+	DECFSZ CONT2, F
+	GOTO CONFIG1
+    RETURN
+
+END
+    
