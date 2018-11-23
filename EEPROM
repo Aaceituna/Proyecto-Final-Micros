@@ -21,12 +21,15 @@
  __CONFIG _CONFIG2, _BOR4V_BOR40V & _WRT_OFF
  
 GPR_VAR	    UDATA_shr
-CONTROL	    RES	1
 ADDRESS	    RES 1
 CONT1	    RES 1
 CONT2	    RES 1
 CONT3	    RES 1
 CONT4	    RES 1
+CONTROL	    RES	1
+LIMITE	    RES 1
+VAR1	    RES 1
+VAR2	    RES 1
 
 RES_VECT   CODE    0x0000		
     GOTO    START
@@ -49,6 +52,22 @@ SETUP:
     BSF    ANSEL	;Borra entradas analógicas
     BSF    ANSELH
     
+    BANKSEL TXSTA
+    BCF	    TXSTA, SYNC		    
+    BSF	    TXSTA, BRGH		    
+    BANKSEL BAUDCTL
+    BSF	    BAUDCTL, BRG16	    
+    BANKSEL SPBRG
+    MOVLW   .25	    
+    MOVWF   SPBRG		    
+    CLRF    SPBRGH
+    BANKSEL RCSTA
+    BSF	    RCSTA, SPEN		    
+    BCF	    RCSTA, RX9		    
+    BSF	    RCSTA, CREN		    
+    BANKSEL TXSTA
+    BSF	    TXSTA, TXEN	
+    
     BCF	    STATUS, 5
     BCF	    STATUS, 6	;Banco 0
     
@@ -65,7 +84,7 @@ SETUP:
     
     BSF	OSCCON, 6
     BCF	OSCCON, 5
-    BSF	OSCCON, 4   ;Oscilador 2 MHz
+    BCF	OSCCON, 4   ;Oscilador 1 MHz
 	
     BSF	PIE1, 0	    ;Se activa interrupcion de TIMR1
     
@@ -76,13 +95,14 @@ SETUP:
     MOVWF   TMR1H
     BCF	    T1CON, 6    
     BCF	    T1CON, 5
-    BSF	    T1CON, 4    ;Prescaler 1:8 en TIMER1
+    BCF	    T1CON, 4    ;Prescaler 1:2 en TIMER1
     BCF	    T1CON, 3
     BCF	    T1CON, 1    ;Reloj interno
 
     CLRF    ADDRESS
     CLRF    CONTROL
     CLRF    CONT4
+    CLRF    LIMITE
 
 CONFIG_ADC:
     BANKSEL PORTA
