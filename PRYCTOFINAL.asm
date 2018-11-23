@@ -1,7 +1,7 @@
 ;*************************************************************
-; José Eduardo Morales
+; ANTONIO ALTUNA. ADRIAN AYALA 
 ; UVG
-; EQU MACROS Y ESTADOS
+; PROYECTO PWM
 ;*************************************************************
 #include "p16f887.inc"
 
