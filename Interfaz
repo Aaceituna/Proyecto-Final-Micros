@@ -9,6 +9,7 @@ raiz=Tk()
 
 recibido = 0
 stop = 0
+modo = IntVar(None, 1)
 
 ser = serial.Serial(port='/dev/cu.SLAB_USBtoUART', baudrate=9600, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,bytesize=serial.EIGHTBITS, timeout=0)
 
@@ -19,39 +20,105 @@ def function():
 	ser.flushOutput()
 	time.sleep(.8)
 	ser.write(stop)
-	#if recibido1 != 0:
-		#recibido = 0
-	#else:
-		#recibido = v_guardado
 	raiz.after(50, function)
 
-def actualizar():
-	global recibido
-	angulo1 = valor.get()
-	recibido = round((int(angulo1))).to_bytes(1, byteorder = "big")
+def reproducir():
+	pass
+	#play.config(relief = tk.SUNKEN)
+	#play.config(state=tk.DISABLED)
+	#record.config(relief = tk.SUNKEN)
+	#record.config(state=tk.DISABLED)
+	if modo.get() == 1:
+		recibido = int(8).to_bytes(1, byteorder = "big")
+	elif modo.get() == 2:
+		recibido = int(16).to_bytes(1, byteorder = "big")
+	elif modo.get() == 3:
+		recibido = int(32).to_bytes(1, byteorder = "big")
 	ser.flushInput()
 	ser.flushOutput()
 	time.sleep(.2)
 	ser.write(recibido)
 
 
+def grabar():
+	pass
+	#play.config(relief = tk.SUNKEN)
+	#play.config(state=tk.DISABLED)
+	#record.config(relief = tk.SUNKEN)
+	#record.config(state=tk.DISABLED)
+	if modo.get() == 1:
+		recibido = int(1).to_bytes(1, byteorder = "big")
+	elif modo.get() == 2:
+		recibido = int(2).to_bytes(1, byteorder = "big")
+	elif modo.get() == 3:
+		recibido = int(4).to_bytes(1, byteorder = "big")
+	ser.flushInput()
+	ser.flushOutput()
+	time.sleep(.2)
+	ser.write(recibido)
+
+def detener():
+	pass
+	#play.config(relief = tk.RAISED)
+	#play.config(state=tk.ACTIVE)
+	#record.config(relief = tk.RAISED)
+	#record.config(state=tk.ACTIVE)
+
+image = Image.open("JE.gif")
+image = image.resize((125, 125), Image.ANTIALIAS)
+photo = ImageTk.PhotoImage(image)
+
+image1 = Image.open("JE1.gif")
+image1 = image1.resize((125, 125), Image.ANTIALIAS)
+photo1 = ImageTk.PhotoImage(image1)
+
+image2 = Image.open("JE2.gif")
+image2 = image2.resize((125, 125), Image.ANTIALIAS)
+photo2 = ImageTk.PhotoImage(image2)
+
+modo = IntVar(None, 1)
+
+raiz.title("Proyecto Final")
+
 raiz.resizable(0,0)
 
-raiz.geometry("700x600")
+raiz.geometry("1000x600")
 
-raiz.config(bg="#3B170B")
+raiz.config(bg="#B473BC")
 
 frame=Frame()
 
 frame.pack()
-frame.config(bg="#3B170B", bd="30",relief="groove", cursor="gumby")
-frame.config(width="700", height="600")
+frame.config(bg="#B473BC", bd="30",relief="groove", cursor="pirate")
+frame.config(width="1000", height="600")
 
-valor =Entry(frame)
-valor.place(x=300, y=150)
+titulo= Label(frame, text="Proyecto Final \nAntonio Altuna - 17097 \nJose Adrian Ayala - 17042", bg="#B473BC", fg="#4E4B4E", font=("Comic Sans MS", 24))
+titulo.place(x=350, y=25)
 
-enviar= ttk.Button(frame, text="Enviar", command = actualizar)
-enviar.place(x=290, y=225)
+replabel = Label(frame, text="Reproducir", bg="#B473BC", fg="green", font=("Comic Sans MS", 16))
+replabel.place(x=240, y=350)
+
+grabarlabel = Label(frame, text="Grabar", bg="#B473BC", fg="red", font=("Comic Sans MS", 16))
+grabarlabel.place(x=460, y=350)
+
+pararlabel = Label(frame, text="Detener", bg="#B473BC", fg="blue", font=("Comic Sans MS", 16))
+pararlabel.place(x=670, y=350)
+
+r1 = Radiobutton(frame, text="Rutina 1", variable=modo, value = 1, font=("Comic Sans MS", 24))
+r1.place(x=25, y=190)
+r2 = Radiobutton(frame, text="Rutina 2", variable=modo, value = 2, font=("Comic Sans MS", 24))
+r2.place(x=25, y=255)
+r3 = Radiobutton(frame, text="Rutina 3", variable=modo, value = 3, font=("Comic Sans MS", 24))
+r3.place(x=25, y=320)
+
+play = ttk.Button(raiz, image=photo, command = reproducir)
+play.place(x=240, y=240)
+
+record = ttk.Button(raiz, image=photo1, command = grabar)
+record.place(x=450, y=240)
+
+stop = ttk.Button(raiz, image=photo2, command = detener)
+stop.place(x=660, y=240)
 
 raiz.after(0, function)
 raiz.mainloop()
